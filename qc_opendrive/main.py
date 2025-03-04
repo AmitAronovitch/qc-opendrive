@@ -251,9 +251,7 @@ def run_checks(config: Configuration, result: Result) -> None:
     execute_checker(semantic.road_lane_link_zero_width_at_start, checker_data)
     execute_checker(semantic.road_lane_link_zero_width_at_end, checker_data)
     execute_checker(semantic.road_lane_link_new_lane_appear, checker_data)
-    execute_checker(
-        semantic.junctions_connection_connect_road_no_incoming_road, checker_data
-    )
+    execute_checker(semantic.junctions_connection_connect_road_no_incoming_road, checker_data)
     execute_checker(semantic.junctions_connection_one_connection_element, checker_data)
     execute_checker(semantic.junctions_connection_one_link_to_incoming, checker_data)
     execute_checker(semantic.junctions_connection_start_along_linkage, checker_data)
@@ -269,18 +267,23 @@ def run_checks(config: Configuration, result: Result) -> None:
     execute_checker(performance.performance_avoid_redundant_info, checker_data)
 
     # 6. Run smoothness checks
-    execute_checker(
-        smoothness.lane_smoothness_contact_point_no_horizontal_gaps, checker_data
-    )
+    execute_checker(smoothness.lane_smoothness_contact_point_no_horizontal_gaps, checker_data)
+
+    # 7. Run ME tests
+    execute_checker(semantic.referenced_junction_id_exists, checker_data)
+    execute_checker(semantic.referenced_road_id_exists, checker_data)
 
 
-def main():
-    args = args_entrypoint()
+def main(config_path: str = None, generate_markdown: bool = None) -> None:
+    if not config_path or generate_markdown is None:
+        args = args_entrypoint()
+        config_path = config_path or args.config_path
+        generate_markdown = generate_markdown or args.generate_markdown
 
     logging.info("Initializing checks")
 
     config = Configuration()
-    config.load_from_file(xml_file_path=args.config_path)
+    config.load_from_file(xml_file_path=config_path)
 
     result = Result()
     result.register_checker_bundle(
@@ -302,7 +305,7 @@ def main():
         generate_summary=True,
     )
 
-    if args.generate_markdown:
+    if generate_markdown:
         result.write_markdown_doc("generated_checker_bundle_doc.md")
 
     logging.info("Done")

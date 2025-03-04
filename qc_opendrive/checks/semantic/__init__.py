@@ -32,3 +32,9 @@ from . import (
 from . import (
     junctions_connection_connect_road_no_incoming_road as junctions_connection_connect_road_no_incoming_road,
 )
+
+# TODO: ME tests - move to separate module
+from . import (
+    referenced_junction_id_exists as referenced_junction_id_exists,
+    referenced_road_id_exists as referenced_road_id_exists
+)
