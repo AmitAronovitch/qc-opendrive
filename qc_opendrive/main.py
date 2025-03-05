@@ -269,7 +269,11 @@ def run_checks(config: Configuration, result: Result) -> None:
     # 6. Run smoothness checks
     execute_checker(smoothness.lane_smoothness_contact_point_no_horizontal_gaps, checker_data)
 
-    # 7. Run ME tests
+    ################ ME TESTS ################
+    # 7. Run ME geometry tests
+    execute_checker(geometry.connected_roads_connect_reference_lines, checker_data)
+
+    # 8. Run ME semantic tests
     execute_checker(semantic.referenced_junction_id_exists, checker_data)
     execute_checker(semantic.referenced_road_id_exists, checker_data)
 

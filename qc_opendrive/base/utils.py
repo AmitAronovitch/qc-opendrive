@@ -1762,3 +1762,36 @@ def get_middle_point_xyz_at_height_zero_from_lane_by_s(
 
 def get_s_offset_from_access(access: etree._ElementTree) -> Optional[float]:
     return to_float(access.get("sOffset"))
+
+
+def point_to_array(point: models.Point2D | models.Point3D):
+    # If the point has a 'z' attribute, it's 3D; otherwise, it's 2D.
+    return np.array([point.x, point.y, point.z]) if hasattr(point, 'z') else np.array([point.x, point.y])
+    
+
+def euclidean_distance(p1: models.Point2D | models.Point3D, p2: models.Point2D | models.Point3D) -> float:
+    """
+    Calculate the Euclidean distance between two points. 
+    If one point is 2d and the other point is 3d then the 2d point is extended to 3d by adding z=zero.
+
+    Args:
+        p1: The first point.
+        p2: The second point.
+
+    Returns:
+        The Euclidean distance between the two points.
+    """
+    # Convert the points to numpy arrays
+    p1 = point_to_array(p1)
+    p2 = point_to_array(p2)
+
+    # If points are of different dimensionality - assume missing dimension is zero.
+    if p1.shape != p2.shape:
+        # Extend the lower-dimensional array with zeros.
+        if p1.shape[0] < p2.shape[0]:
+            p1 = np.append(p1, 0)
+        else:
+            p2 = np.append(p2, 0)
+    
+    # Calculate the Euclidean distance.
+    return np.linalg.norm(p1 - p2)

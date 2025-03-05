@@ -16,3 +16,6 @@ from . import (
 from . import (
     road_lane_border_overlap_with_inner_lanes as road_lane_border_overlap_with_inner_lanes,
 )
+from . import (
+    connected_roads_connect_reference_lines as connected_roads_connect_reference_lines,
+)
