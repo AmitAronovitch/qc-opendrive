@@ -10,7 +10,7 @@ from qc_opendrive import basic_preconditions
 
 CHECKER_ID = "check_asam_xodr_junction_id_exists"
 CHECKER_DESCRIPTION = "Referenced junction id must exist."
-CHECKER_PRECONDITIONS = set()  # basic_preconditions.CHECKER_PRECONDITIONS
+CHECKER_PRECONDITIONS = basic_preconditions.CHECKER_PRECONDITIONS
 RULE_UID = "me.net:xodr:1.4.0:junctions.id.exists"
 
 
