@@ -36,5 +36,6 @@ from . import (
 # TODO: ME tests - move to separate module
 from . import (
     referenced_junction_id_exists as referenced_junction_id_exists,
-    referenced_road_id_exists as referenced_road_id_exists
+    referenced_road_id_exists as referenced_road_id_exists,
+    junctions_incoming_roads_number as junctions_incoming_roads_number,
 )
