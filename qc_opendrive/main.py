@@ -277,6 +277,7 @@ def run_checks(config: Configuration, result: Result) -> None:
     execute_checker(semantic.referenced_junction_id_exists, checker_data)
     execute_checker(semantic.referenced_road_id_exists, checker_data)
     execute_checker(semantic.junctions_incoming_roads_number, checker_data)
+    execute_checker(semantic.lanes_connect_with_reversed_direction, checker_data)
 
 
 def main(config_path: str = None, generate_markdown: bool = None) -> None:
