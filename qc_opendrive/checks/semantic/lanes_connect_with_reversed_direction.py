@@ -11,7 +11,7 @@ from qc_opendrive.checks.geometry import connected_roads_connect_reference_lines
 
 CHECKER_ID = "check_asam_xodr_lanes_connect_with_reversed_direction"
 CHECKER_DESCRIPTION = "Lanes should connect with reversed direction. This is just a warning, not a spec violation"
-CHECKER_PRECONDITIONS = set()  # set([connected_roads_connect_reference_lines]) | basic_preconditions.CHECKER_PRECONDITIONS
+CHECKER_PRECONDITIONS = set([connected_roads_connect_reference_lines]) | basic_preconditions.CHECKER_PRECONDITIONS
 RULE_UID = "me.net:xodr:1.4.0:connected_lanes.direction.reversed"
 
 

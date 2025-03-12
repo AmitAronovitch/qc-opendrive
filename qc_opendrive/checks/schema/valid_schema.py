@@ -43,28 +43,30 @@ class SchemaError:
     message: str
     line: int
     column: int
+    xpath: str
 
 
 def _get_schema_errors(
     xml_file: str, schema_file: str, schema_version: str
-) -> List[SchemaError]:
+) -> List[tuple[SchemaError, IssueSeverity]]:
     """Check if input xml tree  is valid against the input schema file (.xsd)
 
     Args:
         xml_file (etree._ElementTree): XML tree to test
         schema_file (str): XSD file path containing the schema for the validation
+        schema_version (str): Version of the schema to use for validation
 
     Returns:
-        bool: True if file pointed by xml_file is valid w.r.t. input schema file. False otherwise
+        List[tuple[SchemaError, IssueSeverity]]: List of errors found during the validation, with their severity
     """
 
     split_result = schema_version.split(".")
     major = utils.to_int(split_result[0])
     minor = utils.to_int(split_result[1])
-    errors = []
+    errors_with_severity = []
 
     if major is None or minor is None:
-        return False, errors
+        return False, errors_with_severity
 
     # use LXML for XSD 1.0 with better error level -> OpenDRIVE 1.7 and lower
     if major <= 1 and minor <= 7:
@@ -72,27 +74,29 @@ def _get_schema_errors(
         xml_tree = etree.parse(xml_file)
         schema.validate(xml_tree)
         for error in schema.error_log:
-            errors.append(
-                SchemaError(
-                    message=error.message,
-                    line=error.line,
-                    column=error.column,
-                )
-            )
+            schema_error = SchemaError(message=error.message, line=error.line, column=error.column, xpath=error.path)
+            errors_with_severity.append((schema_error, _get_error_severity(schema_error)))
     else:  # use xmlschema to support XSD schema 1.1 -> OpenDRIVE 1.8 and higher
         schema = xmlschema.XMLSchema11(schema_file)
         # Iterate over all validation errors
         xml_doc = etree.parse(xml_file)
         for error in schema.iter_errors(xml_doc):
-            errors.append(
-                SchemaError(
-                    message=error.reason,
-                    line=error.sourceline,
-                    column=0,
-                )
-            )
+            schema_error = SchemaError(message=error.reason, line=error.sourceline, column=0, xpath=error.path)
+            errors_with_severity.append((schema_error, _get_error_severity(schema_error)))
 
-    return errors
+    return errors_with_severity
+
+
+def _get_error_severity(schema_error: SchemaError) -> IssueSeverity:
+    """Get the severity of the error based on the error message
+
+    Args:
+        schema_error (SchemaError): Error to check
+
+    Returns:
+        IssueSeverity: Severity of the error
+    """
+    return IssueSeverity.ERROR  # Always return error, can be overriden if needed
 
 
 def check_rule(checker_data: models.CheckerData) -> None:
@@ -126,16 +130,16 @@ def check_rule(checker_data: models.CheckerData) -> None:
     xsd_file_path = str(
         importlib.resources.files("qc_opendrive.schema").joinpath(xsd_file)
     )
-    errors = _get_schema_errors(
+    errors_with_severities = _get_schema_errors(
         checker_data.config.get_config_param("InputFile"), xsd_file_path, schema_version
     )
 
-    for error in errors:
+    for error, severity in errors_with_severities:
         issue_id = checker_data.result.register_issue(
             checker_bundle_name=constants.BUNDLE_NAME,
             checker_id=CHECKER_ID,
             description="Issue flagging when input file does not follow its version schema",
-            level=IssueSeverity.ERROR,
+            level=severity,
             rule_uid=RULE_UID,
         )
 
