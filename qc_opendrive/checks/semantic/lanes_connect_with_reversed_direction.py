@@ -11,9 +11,8 @@ from qc_opendrive.checks.geometry import connected_roads_connect_reference_lines
 
 CHECKER_ID = "check_asam_xodr_lanes_connect_with_reversed_direction"
 CHECKER_DESCRIPTION = "Lanes should connect with reversed direction. This is just a warning, not a spec violation"
-CHECKER_PRECONDITIONS = set([connected_roads_connect_reference_lines]) | basic_preconditions.CHECKER_PRECONDITIONS
+CHECKER_PRECONDITIONS = set()  # set([connected_roads_connect_reference_lines]) | basic_preconditions.CHECKER_PRECONDITIONS
 RULE_UID = "me.net:xodr:1.4.0:connected_lanes.direction.reversed"
-TOLERANCE_THRESHOLD = 0.001
 
 
 def check_rule(checker_data: models.CheckerData) -> None:
@@ -32,7 +31,7 @@ def check_rule(checker_data: models.CheckerData) -> None:
     junctions_id_map = utils.get_junction_id_map(checker_data.input_file_xml_root)
 
     # Iterate over all roads, checking lane connections for each road
-    for road_id, road in roads_id_map.items():
+    for _, road in roads_id_map.items():
         _check_road_lanes(checker_data, road, junctions_id_map, roads_id_map)
         
 
@@ -53,7 +52,9 @@ def _check_road_lanes(checker_data: models.CheckerData,
     """
     # Get all of the road's lanes from the last lane section
     lane_sections = utils.get_lane_sections(road)
-    lanes = utils.get_lanes(lane_sections[-1])
+
+    # Collect all lanes with a negative id sign from lane_sections[-1] and all lanes with a positive id sign from lane_sections[0]
+    lanes = set([l for l in utils.get_lanes(lane_sections[-1]) if l.get('id') < '0'] + [l for l in utils.get_lanes(lane_sections[0]) if l.get('id') > '0'])
 
     # Iterate over all lanes
     for lane in lanes:
@@ -66,13 +67,13 @@ def _check_road_lanes(checker_data: models.CheckerData,
         for connected_lane, connected_road in connected_lanes_with_roads:
 
             # Get the sign match between the lane IDs
-            signs_reversed = (int(lane.get('id')) ^ int(connected_lane.get('id'))) < 0
+            id_signs_reversed = (int(lane.get('id')) ^ int(connected_lane.get('id'))) < 0
 
             # Get the reference line direction match
             reference_line_direction_reversed = _is_reference_line_direction_reversed(road, connected_road)
 
             # If there is a mismatch in only one value - traffic directions with collide
-            if signs_reversed ^ reference_line_direction_reversed:
+            if id_signs_reversed ^ reference_line_direction_reversed:
                 _raise_issue(checker_data, lane, connected_lane, road, connected_road)
 
 
@@ -95,29 +96,30 @@ def _get_connected_lanes_with_roads(lane: etree._Element,
     """
     connected_lanes_with_roads = []
 
-    # Get the road's successor and predecessor road IDs
-    successor_road_id = utils.get_successor_road_id(road)
-    successor_road = roads_id_map.get(successor_road_id)
+    # Get the lane's sign, and by that the linkage tag by the direction of traffic
+    linkage_tag = models.LinkageTag.SUCCESSOR if int(lane.get('id')) < 0 else models.LinkageTag.PREDECESSOR
+
+    # Get the road's linked road IDs
+    linked_road_id = utils.get_successor_road_id(road) if linkage_tag == models.LinkageTag.SUCCESSOR else utils.get_predecessor_road_id(road)
+    linked_road = roads_id_map.get(linked_road_id)
     
     # If the lane has a link element - add the connected lane
-    if successor_road is not None and \
-        (linked_lane := utils.get_lane_link_element(lane, 
-                                                    successor_road_id, 
-                                                    models.LinkageTag.SUCCESSOR)) is not None:
-        connected_lanes_with_roads.append((linked_lane, successor_road))
+    if linked_road is not None and \
+        (linked_lane := utils.get_lane_link_element(lane, linked_road_id, linkage_tag)) is not None:
+        connected_lanes_with_roads.append((linked_lane, linked_road))
 
-    # Get the road's successor junction
-    successor_junction_id = utils.get_linked_junction_id(road, models.LinkageTag.SUCCESSOR)
-    successor_junction = junctions_id_map.get(successor_junction_id, None)
+    # Get the road's linked junction
+    linked_junction_id = utils.get_linked_junction_id(road, linkage_tag)
+    linked_junction = junctions_id_map.get(linked_junction_id, None)
 
-    # We have a connected junction - check its connections to our road and lane
-    if successor_junction is not None:
-        junction_connections = utils.get_connections_from_junction(successor_junction)
+    # We have a linked junction - check its connections to our road and lane
+    if linked_junction is not None:
+        junction_connections = utils.get_connections_from_junction(linked_junction)
 
-        # Keep only the junction connections where the incoming road has the same id as our road
+        # Keep only the junction connections where the incoming road has the same id as our road, since we only followed traffic direction
         junction_connections = [jc for jc in junction_connections if jc.get('incomingRoad') == road.get('id')]
 
-        # Get the lane links that match out lane id for each junction connection
+        # Get the lane links that match our lane id for each junction connection
         junction_connections_with_lane_links = \
             [(jc, [ll for ll in utils.get_lane_links_from_connection(jc) if ll.get('from') == lane.get('id')]) \
              for jc in junction_connections]
@@ -158,13 +160,26 @@ def _is_reference_line_direction_reversed(road: etree._Element, connected_road: 
         True if the reference line directions are reversed, False otherwise.
     """
     # Directions will be reversed if the two reference lines share an ending point or a starting point
-    road_start_end = (utils.get_start_point_xyz_from_road_reference_line(road),
-                      utils.get_end_point_xyz_from_road_reference_line(road))
-    connected_road_start_end = (utils.get_start_point_xyz_from_road_reference_line(connected_road),
-                                utils.get_end_point_xyz_from_road_reference_line(connected_road))
-    return \
-        utils.euclidean_distance(road_start_end[1], connected_road_start_end[1]) < TOLERANCE_THRESHOLD or \
-        utils.euclidean_distance(road_start_end[0], connected_road_start_end[0]) < TOLERANCE_THRESHOLD
+    road_start, road_end = \
+        (utils.get_start_point_xyz_from_road_reference_line(road), utils.get_end_point_xyz_from_road_reference_line(road))
+    connected_road_start, connected_road_end = \
+        (utils.get_start_point_xyz_from_road_reference_line(connected_road), utils.get_end_point_xyz_from_road_reference_line(connected_road))
+    
+    # Calculate the distances between the reference lines starting and ending points
+    tails_distance = utils.euclidean_distance(road_end, connected_road_end)
+    heads_distance = utils.euclidean_distance(road_start, connected_road_start)
+    head2tail_distance = utils.euclidean_distance(road_start, connected_road_end)
+    tail2head_distance = utils.euclidean_distance(road_end, connected_road_start)
+
+    # Sort the distances - we do that so that we dont need a threshold for defining when reference lines touch
+    sorted_distances = sorted(
+        [(tails_distance, 'tails'), 
+         (heads_distance, 'heads'), 
+         (head2tail_distance, 'head2tail'), 
+         (tail2head_distance, 'tail2head')], key=lambda x: x[0])
+
+    # If the closest distance is between the heads or the tails - the reference lines are reversed
+    return sorted_distances[0][1] in ['heads', 'tails']
 
 
 def _raise_issue(checker_data: models.CheckerData, lane: etree._Element, connected_lane: etree._Element, 
