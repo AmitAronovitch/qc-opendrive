@@ -26,19 +26,17 @@ def check_rule(checker_data: models.CheckerData) -> None:
     """
     logging.info(f"Executing {CHECKER_ID}.")
 
-    _check_all_roads(checker_data)
-
-def _check_all_roads(checker_data: models.CheckerData) -> None:
-    """
-    Check if the reference lines of connected roads connect.
-
-    Args:
-        checker_data: The data needed to perform the check.
-    """
     road_id_to_road = utils.get_road_id_map(checker_data.input_file_xml_root)
 
     # Iterate over all roads, testing successors and predecessors for reference-line connection
     for road in road_id_to_road.values():
+
+        # Check if the road is a connecting road
+        road_is_a_connecting_road = (junction := road.get('junction')) is not None and int(junction) != -1
+
+        # Skip the road if it is a connecting road (perhaps only predecessors need to be skipped in this case...)
+        if road_is_a_connecting_road:
+            continue
 
         # Check the roads reference-line connection with its successors
         road_successor = utils.get_road_linkage(road=road, linkage_tag=models.LinkageTag.SUCCESSOR)
@@ -78,7 +76,7 @@ def _check_road_connection(checker_data, road_1, road_2, linkage_tag) -> None:
 
 def _raise_issue(checker_data, road_1: etree._Element, road_2: etree._Element, linkage_tag: models.LinkageTag) -> None:
     # Construct the msg and the element to report
-    msg = f'{linkage_tag.name} (id={road_1.get("id")}; sourceline={road_1.sourceline}; xpath={checker_data.input_file_xml_root.getpath(road_1)}) reference line does not connect to the roads reference line.'
+    msg = f'reference line does not connect for {linkage_tag.name} road {road_1.get("id")} and road {road_2.get("id")}.'
 
     issue_id = checker_data.result.register_issue(
         checker_bundle_name=constants.BUNDLE_NAME,
