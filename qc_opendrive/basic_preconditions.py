@@ -11,12 +11,20 @@ from qc_opendrive.checks.basic import (
     version_is_defined,
 )
 
-from qc_opendrive.checks.schema import valid_schema
+from qc_opendrive.checks.schema import valid_schema, me_valid_schema
+
+# CHECKER_PRECONDITIONS = {
+#     valid_xml_document.CHECKER_ID,
+#     root_tag_is_opendrive.CHECKER_ID,
+#     fileheader_is_present.CHECKER_ID,
+#     version_is_defined.CHECKER_ID,
+#     valid_schema.CHECKER_ID,
+# }
 
 CHECKER_PRECONDITIONS = {
     valid_xml_document.CHECKER_ID,
     root_tag_is_opendrive.CHECKER_ID,
     fileheader_is_present.CHECKER_ID,
     version_is_defined.CHECKER_ID,
-    valid_schema.CHECKER_ID,
+    me_valid_schema.CHECKER_ID,
 }

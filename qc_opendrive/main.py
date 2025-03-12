@@ -241,7 +241,8 @@ def run_checks(config: Configuration, result: Result) -> None:
         )
 
     # 2. Run schema check
-    execute_checker(schema.valid_schema, checker_data)
+    # execute_checker(schema.valid_schema, checker_data)
+    execute_checker(schema.me_valid_schema, checker_data)
 
     # 3. Run semantic checks
     execute_checker(semantic.road_lane_level_true_one_side, checker_data)

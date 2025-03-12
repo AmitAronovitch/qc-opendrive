@@ -5,3 +5,4 @@
 # with this file, You can obtain one at https://mozilla.org/MPL/2.0/.
 
 from . import valid_schema as valid_schema
+from . import me_valid_schema as me_valid_schema
