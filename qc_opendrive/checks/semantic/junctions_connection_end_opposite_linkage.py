@@ -15,7 +15,7 @@ from qc_opendrive.base import models, utils
 from qc_opendrive import basic_preconditions
 
 CHECKER_ID = "check_asam_xodr_junctions_connection_end_opposite_linkage"
-CHECKER_DESCRIPTION = 'The value "end" shall be used to indicate that the connectingroad runs along the opposite direction of the linkage indicated in the element.'
+CHECKER_DESCRIPTION = 'The value "end" shall be used to indicate that the connecting road runs along the opposite direction of the linkage indicated in the element.'
 CHECKER_PRECONDITIONS = basic_preconditions.CHECKER_PRECONDITIONS
 RULE_UID = "asam.net:xodr:1.7.0:junctions.connection.end_opposite_linkage"
 
