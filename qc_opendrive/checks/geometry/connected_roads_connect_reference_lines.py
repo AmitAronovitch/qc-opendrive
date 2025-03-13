@@ -34,21 +34,22 @@ def check_rule(checker_data: models.CheckerData) -> None:
         # Check if the road is a connecting road
         road_is_a_connecting_road = (junction := road.get('junction')) is not None and int(junction) != -1
 
-        # Skip the road if it is a connecting road (perhaps only predecessors need to be skipped in this case...)
-        if road_is_a_connecting_road:
-            continue
-
         # Check the roads reference-line connection with its successors
         road_successor = utils.get_road_linkage(road=road, linkage_tag=models.LinkageTag.SUCCESSOR)
         if road_successor:
             road_successor = road_id_to_road.get(road_successor.id)
-            _check_road_connection(checker_data, road_successor, road, models.LinkageTag.SUCCESSOR)
+            road_successor_is_a_connecting_road = \
+                (junction := road.get('junction')) is not None and int(junction) != -1
+            if not road_successor_is_a_connecting_road:
+                _check_road_connection(checker_data, road_successor, road, models.LinkageTag.SUCCESSOR)
 
-        # Check the roads reference-line connection with its predecessors
-        road_predecessor = utils.get_road_linkage(road=road, linkage_tag=models.LinkageTag.PREDECESSOR)
-        if road_predecessor:
-            road_predecessor = road_id_to_road.get(road_predecessor.id)
-            _check_road_connection(checker_data, road_predecessor, road, models.LinkageTag.PREDECESSOR)
+        # If road is not a connecting road within a junction, check the roads reference-line 
+        # connection with its predecessors
+        if not road_is_a_connecting_road:
+            road_predecessor = utils.get_road_linkage(road=road, linkage_tag=models.LinkageTag.PREDECESSOR)
+            if road_predecessor:
+                road_predecessor = road_id_to_road.get(road_predecessor.id)
+                _check_road_connection(checker_data, road_predecessor, road, models.LinkageTag.PREDECESSOR)
 
 def _check_road_connection(checker_data, road_1, road_2, linkage_tag) -> None:
     """
