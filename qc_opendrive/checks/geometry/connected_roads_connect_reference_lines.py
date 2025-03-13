@@ -31,21 +31,17 @@ def check_rule(checker_data: models.CheckerData) -> None:
     # Iterate over all roads, testing successors and predecessors for reference-line connection
     for road in road_id_to_road.values():
 
-        # Check if the road is a connecting road
-        road_is_a_connecting_road = (junction := road.get('junction')) is not None and int(junction) != -1
-
         # Check the roads reference-line connection with its successors
         road_successor = utils.get_road_linkage(road=road, linkage_tag=models.LinkageTag.SUCCESSOR)
         if road_successor:
             road_successor = road_id_to_road.get(road_successor.id)
-            road_successor_is_a_connecting_road = \
-                (junction := road.get('junction')) is not None and int(junction) != -1
-            if not road_successor_is_a_connecting_road:
+
+            # Check the connection only if the road is not a connecting road within a junction
+            if not utils.road_belongs_to_junction(road_successor):
                 _check_road_connection(checker_data, road_successor, road, models.LinkageTag.SUCCESSOR)
 
-        # If road is not a connecting road within a junction, check the roads reference-line 
-        # connection with its predecessors
-        if not road_is_a_connecting_road:
+        # Check the connection to the predecessor only if the road is not a connecting road within a junction
+        if not utils.road_belongs_to_junction(road):
             road_predecessor = utils.get_road_linkage(road=road, linkage_tag=models.LinkageTag.PREDECESSOR)
             if road_predecessor:
                 road_predecessor = road_id_to_road.get(road_predecessor.id)
@@ -76,9 +72,22 @@ def _check_road_connection(checker_data, road_1, road_2, linkage_tag) -> None:
 
 
 def _raise_issue(checker_data, road_1: etree._Element, road_2: etree._Element, linkage_tag: models.LinkageTag) -> None:
-    # Construct the msg and the element to report
-    msg = f'reference line does not connect for {linkage_tag.name} road {road_1.get("id")} and road {road_2.get("id")}.'
+    """
+    Raise an issue for a road that does not connect to another road.
+    
+    Args:
+        checker_data: The data needed to perform the check.
+        road_1: The first road to check.
+        road_2: The second road to check.
+        linkage_tag: The linkage tag that connects the two roads (2nd road to first, so a PREDECESSOR tag 
+            means that road_2 is the predecessor of road_1).
+    """
+    # Construct the msg to report
+    r1_name = f'{road_1.get("id")}{" (Connecting)" if utils.road_belongs_to_junction(road_1) else ""}'
+    r2_name = f'{road_2.get("id")}{" (Connecting)" if utils.road_belongs_to_junction(road_2) else ""}'
+    msg = f'reference line does not connect for road {r2_name} and its {linkage_tag.name} road {r1_name}.'
 
+    # Cinstruct an issue
     issue_id = checker_data.result.register_issue(
         checker_bundle_name=constants.BUNDLE_NAME,
         checker_id=CHECKER_ID,
