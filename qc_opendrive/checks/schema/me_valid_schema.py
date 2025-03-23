@@ -17,7 +17,7 @@ from qc_opendrive.checks.basic import (
 )
 
 CHECKER_ID = "me_check_asam_xodr_xml_valid_schema"
-CHECKER_DESCRIPTION = "Input xml file must be valid according to the schema, but some elements will raise only warnings and not errors."
+CHECKER_DESCRIPTION = "Input xml file must be valid according to the schema, filtered by ME needs, but some elements will raise only warnings and not errors."
 CHECKER_PRECONDITIONS = {
     valid_xml_document.CHECKER_ID,
     root_tag_is_opendrive.CHECKER_ID,
@@ -68,6 +68,22 @@ class MESchemaValidator(SchemaValidator):
                 if sOffset is not None and float(sOffset) > -abs(MESchemaValidator.EPSILON):
                     continue
 
+            # Ignore userData elements (when not in a junction, or when the junction has children of type 'connection')
+            if element.tag == 'userData':
+
+                # Get the parent element
+                parent_element = element.getparent()
+
+                # Ignore all userData elements that are not children of a junction element
+                if parent_element.tag != 'junction':
+                    continue
+
+                # Ignore userData elements that are children of junction elements that have children of type 'connection'
+                sibling_elements = [c for c in element.getparent().getchildren() if c.tag == 'connection']
+                if sibling_elements:
+                    continue
+
+            # If we got this far - this error isnt filtered out
             return IssueSeverity.ERROR
 
         return None  # Always return None (implement if needed)
@@ -76,7 +92,7 @@ class MESchemaValidator(SchemaValidator):
 def check_rule(checker_data: models.CheckerData) -> None:
     """
     Implements a rule to check if input file is valid according to OpenDRIVE schema, but with 
-    some issues raised as warnings instead of errors.
+    some issues raised as warnings instead of errors and some other issues filtered-out by ME needs.
 
     More info at
         - https://github.com/asam-ev/qc-opendrive/issues/86
