@@ -33,6 +33,7 @@ def args_entrypoint() -> argparse.Namespace:
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("-c", "--config_path")
     parser.add_argument("-g", "--generate_markdown", action="store_true")
+    parser.add_argument("-I", "--ignore_preconditions", action="store_true")
 
     return parser.parse_args()
 
