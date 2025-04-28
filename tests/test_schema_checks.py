@@ -8,7 +8,7 @@ import os
 import pytest
 from test_setup import *
 from qc_baselib import Result, IssueSeverity, StatusType
-from qc_opendrive.checks.schema import valid_schema
+from qc_opendrive.checks.schema import me_valid_schema
 
 
 def test_valid_schema_positive17(
@@ -26,7 +26,7 @@ def test_valid_schema_positive17(
     result.load_from_file(REPORT_FILE_PATH)
 
     assert (
-        len(result.get_issues_by_rule_uid("asam.net:xodr:1.0.0:xml.valid_schema")) == 0
+        len(result.get_issues_by_rule_uid("asam.net:xodr:1.0.0:xml.me_valid_schema")) == 0
     )
 
     cleanup_files()
@@ -47,7 +47,7 @@ def test_valid_schema_positive18(
     result.load_from_file(REPORT_FILE_PATH)
 
     assert (
-        len(result.get_issues_by_rule_uid("asam.net:xodr:1.0.0:xml.valid_schema")) == 0
+        len(result.get_issues_by_rule_uid("asam.net:xodr:1.0.0:xml.me_valid_schema")) == 0
     )
 
     cleanup_files()
@@ -67,7 +67,7 @@ def test_valid_schema_negative18(
     result = Result()
     result.load_from_file(REPORT_FILE_PATH)
     schema_issues = result.get_issues_by_rule_uid(
-        "asam.net:xodr:1.0.0:xml.valid_schema"
+        "asam.net:xodr:1.0.0:xml.me_valid_schema"
     )
     assert len(schema_issues) == 1
     assert schema_issues[0].level == IssueSeverity.ERROR
@@ -88,7 +88,7 @@ def test_valid_schema_negative16(
     result = Result()
     result.load_from_file(REPORT_FILE_PATH)
     schema_issues = result.get_issues_by_rule_uid(
-        "asam.net:xodr:1.0.0:xml.valid_schema"
+        "asam.net:xodr:1.0.0:xml.me_valid_schema"
     )
     assert len(schema_issues) == 1
     assert schema_issues[0].level == IssueSeverity.ERROR
@@ -109,7 +109,7 @@ def test_valid_schema_negative17(
     result = Result()
     result.load_from_file(REPORT_FILE_PATH)
     schema_issues = result.get_issues_by_rule_uid(
-        "asam.net:xodr:1.0.0:xml.valid_schema"
+        "asam.net:xodr:1.0.0:xml.me_valid_schema"
     )
     assert len(schema_issues) == 1
     assert schema_issues[0].level == IssueSeverity.ERROR
@@ -131,8 +131,8 @@ def test_unsupported_schema_version(
     result.load_from_file(REPORT_FILE_PATH)
 
     schema_issues = result.get_issues_by_rule_uid(
-        "asam.net:xodr:1.0.0:xml.valid_schema"
+        "asam.net:xodr:1.0.0:xml.me_valid_schema"
     )
     assert len(schema_issues) == 0
-    assert result.get_checker_status(valid_schema.CHECKER_ID) == StatusType.SKIPPED
+    assert result.get_checker_status(me_valid_schema.CHECKER_ID) == StatusType.SKIPPED
     cleanup_files()
