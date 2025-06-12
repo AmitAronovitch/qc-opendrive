@@ -26,7 +26,8 @@ def test_valid_schema_positive17(
     result.load_from_file(REPORT_FILE_PATH)
 
     assert (
-        len(result.get_issues_by_rule_uid("asam.net:xodr:1.0.0:xml.me_valid_schema")) == 0
+        len(result.get_issues_by_rule_uid("asam.net:xodr:1.0.0:xml.me_valid_schema"))
+        == 0
     )
 
     cleanup_files()
@@ -47,7 +48,8 @@ def test_valid_schema_positive18(
     result.load_from_file(REPORT_FILE_PATH)
 
     assert (
-        len(result.get_issues_by_rule_uid("asam.net:xodr:1.0.0:xml.me_valid_schema")) == 0
+        len(result.get_issues_by_rule_uid("asam.net:xodr:1.0.0:xml.me_valid_schema"))
+        == 0
     )
 
     cleanup_files()

@@ -16,7 +16,7 @@ RULE_UID = "me.net:xodr:1.4.0:junctions.id.exists"
 
 def check_rule(checker_data: models.CheckerData) -> None:
     """
-    Implements a rule to check if all junction ids referenced by roads have a junction 
+    Implements a rule to check if all junction ids referenced by roads have a junction
     element with that id.
 
     Args:
@@ -28,8 +28,9 @@ def check_rule(checker_data: models.CheckerData) -> None:
     junctions = utils.get_junctions(checker_data.input_file_xml_root)
 
     # Collect all declared junction ids
-    declared_junction_ids: set[str] = {junction.get("id") for junction in junctions \
-                                       if junction.get("id") is not None}
+    declared_junction_ids: set[str] = {
+        junction.get("id") for junction in junctions if junction.get("id") is not None
+    }
 
     # Collect all roads
     roads: list[etree._ElementTree] = utils.get_roads(checker_data.input_file_xml_root)
@@ -39,9 +40,11 @@ def check_rule(checker_data: models.CheckerData) -> None:
         _check_referenced_junction_id_in_road(checker_data, road, declared_junction_ids)
 
 
-def _check_referenced_junction_id_in_road(checker_data: models.CheckerData, 
-                                          road: etree._Element, 
-                                          declared_junction_ids: set[str]) -> None:
+def _check_referenced_junction_id_in_road(
+    checker_data: models.CheckerData,
+    road: etree._Element,
+    declared_junction_ids: set[str],
+) -> None:
     """
     Check if the junction id referenced by the road exists.
 
@@ -54,23 +57,26 @@ def _check_referenced_junction_id_in_road(checker_data: models.CheckerData,
     if junction_id != "-1" and junction_id not in declared_junction_ids:
         msg = "Referenced junction does not exist."
         issue_id = checker_data.result.register_issue(
-                    checker_bundle_name=constants.BUNDLE_NAME,
-                    checker_id=CHECKER_ID,
-                    description=msg,
-                    level=IssueSeverity.WARNING,
-                    rule_uid=RULE_UID)
-        
+            checker_bundle_name=constants.BUNDLE_NAME,
+            checker_id=CHECKER_ID,
+            description=msg,
+            level=IssueSeverity.WARNING,
+            rule_uid=RULE_UID,
+        )
+
         checker_data.result.add_xml_location(
-             checker_bundle_name=constants.BUNDLE_NAME,
-             checker_id=CHECKER_ID,
-             issue_id=issue_id,
-             xpath=checker_data.input_file_xml_root.getpath(road),
-             description=msg)
-        
+            checker_bundle_name=constants.BUNDLE_NAME,
+            checker_id=CHECKER_ID,
+            issue_id=issue_id,
+            xpath=checker_data.input_file_xml_root.getpath(road),
+            description=msg,
+        )
+
         checker_data.result.add_file_location(
             checker_bundle_name=constants.BUNDLE_NAME,
             checker_id=CHECKER_ID,
             issue_id=issue_id,
             row=road.sourceline,
             column=0,
-            description=msg)
+            description=msg,
+        )

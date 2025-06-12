@@ -31,7 +31,9 @@ def check_rule(checker_data: models.CheckerData) -> None:
         _check_junction_incoming_roads(checker_data, junction)
 
 
-def _check_junction_incoming_roads(checker_data: models.CheckerData, junction: etree._Element) -> None:
+def _check_junction_incoming_roads(
+    checker_data: models.CheckerData, junction: etree._Element
+) -> None:
     """
     Check if the junction contains at least 2 incoming roads.
 
@@ -40,28 +42,30 @@ def _check_junction_incoming_roads(checker_data: models.CheckerData, junction: e
         junction: The junction element to check.
     """
     connections = utils.get_connections_from_junction(junction)
-    incoming_roads = set([c.get('incomingRoad', None) for c in connections])
+    incoming_roads = set([c.get("incomingRoad", None) for c in connections])
     if len(incoming_roads) < 2:
         msg = "Junction does not contain at least 2 incoming roads."
         issue_id = checker_data.result.register_issue(
-                    checker_bundle_name=constants.BUNDLE_NAME,
-                    checker_id=CHECKER_ID,
-                    description=msg,
-                    level=IssueSeverity.INFORMATION,
-                    rule_uid=RULE_UID)
-        
+            checker_bundle_name=constants.BUNDLE_NAME,
+            checker_id=CHECKER_ID,
+            description=msg,
+            level=IssueSeverity.INFORMATION,
+            rule_uid=RULE_UID,
+        )
+
         checker_data.result.add_xml_location(
-             checker_bundle_name=constants.BUNDLE_NAME,
-             checker_id=CHECKER_ID,
-             issue_id=issue_id,
-             xpath=checker_data.input_file_xml_root.getpath(junction),
-             description=msg)
-        
+            checker_bundle_name=constants.BUNDLE_NAME,
+            checker_id=CHECKER_ID,
+            issue_id=issue_id,
+            xpath=checker_data.input_file_xml_root.getpath(junction),
+            description=msg,
+        )
+
         checker_data.result.add_file_location(
             checker_bundle_name=constants.BUNDLE_NAME,
             checker_id=CHECKER_ID,
             issue_id=issue_id,
             row=junction.sourceline,
             column=0,
-            description=msg)
-
+            description=msg,
+        )
