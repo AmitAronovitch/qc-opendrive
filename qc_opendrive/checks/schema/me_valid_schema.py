@@ -16,7 +16,7 @@ from qc_opendrive.checks.basic import (
     version_is_defined,
 )
 
-CHECKER_ID = "me_check_asam_xodr_xml_valid_schema"
+CHECKER_ID = "check_asam_xodr_xml_me_valid_schema"
 CHECKER_DESCRIPTION = "Input xml file must be valid according to the schema, filtered by ME needs, but some elements will raise only warnings and not errors."
 CHECKER_PRECONDITIONS = {
     valid_xml_document.CHECKER_ID,

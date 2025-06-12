@@ -1,4 +1,4 @@
-# Checker bundle: xodrBundle
+# Checker bundle: xodrMEBundle
 
 * Build version:  v1.0.0-rc.1
 * Description:    OpenDrive checker bundle
@@ -34,11 +34,11 @@
 * Addressed rules:
   * asam.net:xodr:1.0.0:xml.version_is_defined
 
-### check_asam_xodr_xml_valid_schema
+### check_asam_xodr_xml_me_valid_schema
 
-* Description: Input xml file must be valid according to the schema.
+* Description: Input xml file must be valid according to the schema, filtered by ME needs, but some elements will raise only warnings and not errors.
 * Addressed rules:
-  * asam.net:xodr:1.0.0:xml.valid_schema
+  * asam.net:xodr:1.0.0:xml.me_valid_schema
 
 ### check_asam_xodr_road_lane_level_true_one_side
 
@@ -108,7 +108,7 @@
 
 ### check_asam_xodr_junctions_connection_end_opposite_linkage
 
-* Description: The value "end" shall be used to indicate that the connectingroad runs along the opposite direction of the linkage indicated in the element.
+* Description: The value "end" shall be used to indicate that the connecting road runs along the opposite direction of the linkage indicated in the element.
 * Addressed rules:
   * asam.net:xodr:1.7.0:junctions.connection.end_opposite_linkage
 
@@ -147,3 +147,33 @@
 * Description: Two connected drivable lanes shall have no horizontal gaps.
 * Addressed rules:
   * asam.net:xodr:1.7.0:lane_smoothness.contact_point_no_horizontal_gaps
+
+### check_asam_xodr_road_geometry_connected_roads_connect_reference_lines
+
+* Description: When roads connect as successors/predecessors their reference lines must connect as well.
+* Addressed rules:
+  * asam.net:xodr:1.4.0:road.geometry.referece_lines_connect_along_paired_roads
+
+### check_asam_xodr_junction_id_exists
+
+* Description: Referenced junction id must exist.
+* Addressed rules:
+  * me.net:xodr:1.4.0:junctions.id.exists
+
+### check_asam_xodr_road_id_exists
+
+* Description: Referenced road id must exist.
+* Addressed rules:
+  * me.net:xodr:1.4.0:roads.id.exists
+
+### check_asam_xodr_junction_incoming_roads_number
+
+* Description: Junctions must have at least 2 incoming road (recommended).
+* Addressed rules:
+  * me.net:xodr:1.4.0:junctions.incoming_roads_number
+
+### check_asam_xodr_lanes_connect_with_reversed_direction
+
+* Description: Lanes should connect with reversed direction. This is just a warning, not a spec violation
+* Addressed rules:
+  * me.net:xodr:1.4.0:connected_lanes.direction.reversed
