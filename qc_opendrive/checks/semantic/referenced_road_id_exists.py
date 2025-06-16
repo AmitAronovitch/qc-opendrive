@@ -27,26 +27,37 @@ def check_rule(checker_data: models.CheckerData) -> None:
     roads = utils.get_roads(checker_data.input_file_xml_root)
 
     # Collect all declared road ids
-    declared_road_ids: set[str] = {road.get("id") for road in roads if road.get("id") is not None}
+    declared_road_ids: set[str] = {
+        road.get("id") for road in roads if road.get("id") is not None
+    }
 
     # Collect all junctions (since those reference roads as well)
     junctions = utils.get_junctions(checker_data.input_file_xml_root)
 
     # Collect all declared junction ids
-    declared_junction_ids: set[str] = {junction.get("id") for junction in junctions if junction.get("id") is not None}
+    declared_junction_ids: set[str] = {
+        junction.get("id") for junction in junctions if junction.get("id") is not None
+    }
 
     # Iterate over all roads, checking the referenced road ids (if any)
     for road in roads:
         _check_referenced_road_id_in_road(
-            checker_data=checker_data, road=road, declared_road_ids=declared_road_ids, 
-            declared_junction_ids=declared_junction_ids)
+            checker_data=checker_data,
+            road=road,
+            declared_road_ids=declared_road_ids,
+            declared_junction_ids=declared_junction_ids,
+        )
 
     # Iterate over all junctions, checking the referenced road ids (if any)
     for junction in junctions:
         _check_referenced_road_id_in_junction(checker_data, junction, declared_road_ids)
 
 
-def _check_referenced_road_id_in_junction(checker_data: models.CheckerData, junction: etree._Element, declared_road_ids: set[str]) -> None:
+def _check_referenced_road_id_in_junction(
+    checker_data: models.CheckerData,
+    junction: etree._Element,
+    declared_road_ids: set[str],
+) -> None:
     """
     Check if the road id referenced by the junction exists.
 
@@ -65,11 +76,16 @@ def _check_referenced_road_id_in_junction(checker_data: models.CheckerData, junc
 
         if incoming_road_id is not None and incoming_road_id not in declared_road_ids:
             _raise_connection_issue(checker_data, connection, "incomingRoad")
-        if connecting_road_id is not None and connecting_road_id not in declared_road_ids:
+        if (
+            connecting_road_id is not None
+            and connecting_road_id not in declared_road_ids
+        ):
             _raise_connection_issue(checker_data, connection, "connectingRoad")
 
 
-def _raise_issue(checker_data: models.CheckerData, issue_element: etree._Element, msg: str) -> None:
+def _raise_issue(
+    checker_data: models.CheckerData, issue_element: etree._Element, msg: str
+) -> None:
     """
     Raises an issue for a an element, using the passed msg.
 
@@ -106,7 +122,9 @@ def _raise_issue(checker_data: models.CheckerData, issue_element: etree._Element
     )
 
 
-def _raise_connection_issue(checker_data: models.CheckerData, connection: etree._Element, road_type: str) -> None:
+def _raise_connection_issue(
+    checker_data: models.CheckerData, connection: etree._Element, road_type: str
+) -> None:
     """
     Raise an issue for a connection element within a junction.
 
@@ -116,10 +134,16 @@ def _raise_connection_issue(checker_data: models.CheckerData, connection: etree.
         road_type: The declared road type (incomingRoad/connectingRoad).
     """
     # Create issue
-    _raise_issue(checker_data, connection, msg=f"Referenced {road_type} does not exist.")
+    _raise_issue(
+        checker_data, connection, msg=f"Referenced {road_type} does not exist."
+    )
 
 
-def _raise_road_or_junction_issue(checker_data: models.CheckerData, issue_element: etree._Element, linkage_tag: models.LinkageTag) -> None:
+def _raise_road_or_junction_issue(
+    checker_data: models.CheckerData,
+    issue_element: etree._Element,
+    linkage_tag: models.LinkageTag,
+) -> None:
     """
     Raise an issue for a road element.
 
@@ -128,14 +152,19 @@ def _raise_road_or_junction_issue(checker_data: models.CheckerData, issue_elemen
         linkage_tag: The linkage tag of the road element (successor/predecessor).
     """
     # Create issue
-    _raise_issue(checker_data, issue_element, 
-                 msg=f"Referenced {linkage_tag.name} {issue_element.get('elementType')} id does not exist.")
+    _raise_issue(
+        checker_data,
+        issue_element,
+        msg=f"Referenced {linkage_tag.name} {issue_element.get('elementType')} id does not exist.",
+    )
 
 
-def _check_referenced_road_id_in_road(checker_data: models.CheckerData, 
-                                      road: etree._Element, 
-                                      declared_road_ids: set[str],
-                                      declared_junction_ids: set[str]) -> None:
+def _check_referenced_road_id_in_road(
+    checker_data: models.CheckerData,
+    road: etree._Element,
+    declared_road_ids: set[str],
+    declared_junction_ids: set[str],
+) -> None:
     """
     Check if the road id referenced by the road exists.
 
@@ -149,23 +178,37 @@ def _check_referenced_road_id_in_road(checker_data: models.CheckerData,
     predecessor = road.find(".//link/predecessor")
 
     # Extract successor and predecessor road ids, if any
-    successor_id = (successor.get("elementId"), successor.get('elementType')) if successor is not None else None
-    predecessor_id = (predecessor.get("elementId"), predecessor.get('elementType')) if predecessor is not None else None
+    successor_id = (
+        (successor.get("elementId"), successor.get("elementType"))
+        if successor is not None
+        else None
+    )
+    predecessor_id = (
+        (predecessor.get("elementId"), predecessor.get("elementType"))
+        if predecessor is not None
+        else None
+    )
 
     if successor_id is not None:
         # Check if the successor road id exists
-        if (successor_id[1] == 'road') and (successor_id[0] not in declared_road_ids):
+        if (successor_id[1] == "road") and (successor_id[0] not in declared_road_ids):
             _raise_road_or_junction_issue(checker_data, successor, "successor")
-        
+
         # Check if the successor junction id exists
-        if (successor_id[1] == 'junction') and (successor_id[0] not in declared_junction_ids):
+        if (successor_id[1] == "junction") and (
+            successor_id[0] not in declared_junction_ids
+        ):
             _raise_road_or_junction_issue(checker_data, successor, "successor")
 
     if predecessor_id is not None:
         # Check if the predecessor road id exists
-        if (predecessor_id[1] == 'road') and (predecessor_id[0] not in declared_road_ids):
+        if (predecessor_id[1] == "road") and (
+            predecessor_id[0] not in declared_road_ids
+        ):
             _raise_road_or_junction_issue(checker_data, predecessor, "predecessor")
 
         # Check if the predecessor junction id exists
-        if (predecessor_id[1] == 'junction') and (predecessor_id[0] not in declared_junction_ids):
+        if (predecessor_id[1] == "junction") and (
+            predecessor_id[0] not in declared_junction_ids
+        ):
             _raise_road_or_junction_issue(checker_data, predecessor, "predecessor")

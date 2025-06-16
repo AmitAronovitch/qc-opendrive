@@ -39,7 +39,6 @@ CHECKER_PRECONDITIONS = {
 RULE_UID = "asam.net:xodr:1.0.0:xml.valid_schema"
 
 
-
 class SchemaValidator:
 
     @dataclass
@@ -49,7 +48,9 @@ class SchemaValidator:
         column: int
         xpath: str
 
-    def __init__(self, checker_data: models.CheckerData, checker_bundle_name, checker_id, rule_id):
+    def __init__(
+        self, checker_data: models.CheckerData, checker_bundle_name, checker_id, rule_id
+    ):
         """Initialize the schema validator"""
         self.checker_bundle_name = checker_bundle_name
         self.checker_id = checker_id
@@ -58,7 +59,13 @@ class SchemaValidator:
         self.schema_version = checker_data.schema_version
         self.xml_file = checker_data.config.get_config_param("InputFile")
         self.xsd_file = schema_files.SCHEMA_FILES.get(self.schema_version)
-        self.schema_file = str(importlib.resources.files("qc_opendrive.schema").joinpath(self.xsd_file)) if self.xsd_file else None
+        self.schema_file = (
+            str(
+                importlib.resources.files("qc_opendrive.schema").joinpath(self.xsd_file)
+            )
+            if self.xsd_file
+            else None
+        )
 
     def raise_issues(self) -> None:
         """Raise issues based on the schema validation results"""
@@ -74,8 +81,8 @@ class SchemaValidator:
                 self.checker_id,
                 f"Cannot find the schema file for ASAM OpenDrive version {self.schema_version}.",
             )
-            return 
-        
+            return
+
         # Get all errors with their severity
         errors_with_severities = self._get_schema_errors()
 
@@ -104,7 +111,7 @@ class SchemaValidator:
                 description=error.message,
             )
 
-    def _get_schema_errors(self) -> List[tuple[SchemaError, IssueSeverity| None]]:
+    def _get_schema_errors(self) -> List[tuple[SchemaError, IssueSeverity | None]]:
         """Check if input xml tree is valid against the input schema file (.xsd). Expects self.schema_file to be set.
 
         Returns:
@@ -125,15 +132,29 @@ class SchemaValidator:
             xml_tree = etree.parse(self.xml_file)
             schema.validate(xml_tree)
             for error in schema.error_log:
-                schema_error = SchemaValidator.SchemaError(message=error.message, line=error.line, column=error.column, xpath=error.path)
-                errors_with_severity.append((schema_error, self._get_error_severity(schema_error)))
+                schema_error = SchemaValidator.SchemaError(
+                    message=error.message,
+                    line=error.line,
+                    column=error.column,
+                    xpath=error.path,
+                )
+                errors_with_severity.append(
+                    (schema_error, self._get_error_severity(schema_error))
+                )
         else:  # use xmlschema to support XSD schema 1.1 -> OpenDRIVE 1.8 and higher
             schema = xmlschema.XMLSchema11(self.schema_file)
             # Iterate over all validation errors
             xml_doc = etree.parse(self.xml_file)
             for error in schema.iter_errors(xml_doc):
-                schema_error = SchemaValidator.SchemaError(message=error.reason, line=error.sourceline, column=0, xpath=error.path)
-                errors_with_severity.append((schema_error, self._get_error_severity(schema_error)))
+                schema_error = SchemaValidator.SchemaError(
+                    message=error.reason,
+                    line=error.sourceline,
+                    column=0,
+                    xpath=error.path,
+                )
+                errors_with_severity.append(
+                    (schema_error, self._get_error_severity(schema_error))
+                )
 
         return errors_with_severity
 
@@ -161,10 +182,11 @@ def check_rule(checker_data: models.CheckerData) -> None:
 
     # Initialize the validator logic (can be overriden if needed)
     schema_validator = SchemaValidator(
-        checker_data=checker_data, 
-        checker_bundle_name=constants.BUNDLE_NAME, 
+        checker_data=checker_data,
+        checker_bundle_name=constants.BUNDLE_NAME,
         checker_id=CHECKER_ID,
-        rule_id=RULE_UID)
+        rule_id=RULE_UID,
+    )
 
     # Validate the schema by the defined logic
     schema_validator.raise_issues()

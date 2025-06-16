@@ -8,7 +8,7 @@ from qc_opendrive.base import models, utils
 from qc_opendrive import basic_preconditions
 
 CHECKER_ID = "check_asam_xodr_road_geometry_connected_roads_connect_reference_lines"
-CHECKER_DESCRIPTION = ("When roads connect as successors/predecessors their reference lines must connect as well.")
+CHECKER_DESCRIPTION = "When roads connect as successors/predecessors their reference lines must connect as well."
 CHECKER_PRECONDITIONS = basic_preconditions.CHECKER_PRECONDITIONS
 RULE_UID = "asam.net:xodr:1.4.0:road.geometry.referece_lines_connect_along_paired_roads"
 TOLERANCE_THRESHOLD = 0.001
@@ -32,20 +32,29 @@ def check_rule(checker_data: models.CheckerData) -> None:
     for road in road_id_to_road.values():
 
         # Check the roads reference-line connection with its successors
-        road_successor = utils.get_road_linkage(road=road, linkage_tag=models.LinkageTag.SUCCESSOR)
+        road_successor = utils.get_road_linkage(
+            road=road, linkage_tag=models.LinkageTag.SUCCESSOR
+        )
         if road_successor:
             road_successor = road_id_to_road.get(road_successor.id)
 
             # Check the connection only if the road is not a connecting road within a junction
             if not utils.road_belongs_to_junction(road_successor):
-                _check_road_connection(checker_data, road_successor, road, models.LinkageTag.SUCCESSOR)
+                _check_road_connection(
+                    checker_data, road_successor, road, models.LinkageTag.SUCCESSOR
+                )
 
         # Check the connection to the predecessor only if the road is not a connecting road within a junction
         if not utils.road_belongs_to_junction(road):
-            road_predecessor = utils.get_road_linkage(road=road, linkage_tag=models.LinkageTag.PREDECESSOR)
+            road_predecessor = utils.get_road_linkage(
+                road=road, linkage_tag=models.LinkageTag.PREDECESSOR
+            )
             if road_predecessor:
                 road_predecessor = road_id_to_road.get(road_predecessor.id)
-                _check_road_connection(checker_data, road_predecessor, road, models.LinkageTag.PREDECESSOR)
+                _check_road_connection(
+                    checker_data, road_predecessor, road, models.LinkageTag.PREDECESSOR
+                )
+
 
 def _check_road_connection(checker_data, road_1, road_2, linkage_tag) -> None:
     """
@@ -58,34 +67,47 @@ def _check_road_connection(checker_data, road_1, road_2, linkage_tag) -> None:
         linkage_tag: The linkage tag that connects the two roads
     """
     # Collect the reference line ends of the two roads
-    r1_reference_ends = (utils.get_start_point_xyz_from_road_reference_line(road_1),
-                         utils.get_end_point_xyz_from_road_reference_line(road_1))
-    r2_reference_ends = (utils.get_start_point_xyz_from_road_reference_line(road_2),
-                         utils.get_end_point_xyz_from_road_reference_line(road_2))
-    
+    r1_reference_ends = (
+        utils.get_start_point_xyz_from_road_reference_line(road_1),
+        utils.get_end_point_xyz_from_road_reference_line(road_1),
+    )
+    r2_reference_ends = (
+        utils.get_start_point_xyz_from_road_reference_line(road_2),
+        utils.get_end_point_xyz_from_road_reference_line(road_2),
+    )
+
     # Calculate all distances between the reference line ends of the two roads
-    distances = [utils.euclidean_distance(p1, p2) for p2 in r2_reference_ends for p1 in r1_reference_ends] 
+    distances = [
+        utils.euclidean_distance(p1, p2)
+        for p2 in r2_reference_ends
+        for p1 in r1_reference_ends
+    ]
 
     # Raise an issue if the minimum distance is greater than the tolerance threshold
     if min(distances) > TOLERANCE_THRESHOLD:
         _raise_issue(checker_data, road_1, road_2, linkage_tag)
 
 
-def _raise_issue(checker_data, road_1: etree._Element, road_2: etree._Element, linkage_tag: models.LinkageTag) -> None:
+def _raise_issue(
+    checker_data,
+    road_1: etree._Element,
+    road_2: etree._Element,
+    linkage_tag: models.LinkageTag,
+) -> None:
     """
     Raise an issue for a road that does not connect to another road.
-    
+
     Args:
         checker_data: The data needed to perform the check.
         road_1: The first road to check.
         road_2: The second road to check.
-        linkage_tag: The linkage tag that connects the two roads (2nd road to first, so a PREDECESSOR tag 
+        linkage_tag: The linkage tag that connects the two roads (2nd road to first, so a PREDECESSOR tag
             means that road_2 is the predecessor of road_1).
     """
     # Construct the msg to report
     r1_name = f'{road_1.get("id")}{" (Connecting)" if utils.road_belongs_to_junction(road_1) else ""}'
     r2_name = f'{road_2.get("id")}{" (Connecting)" if utils.road_belongs_to_junction(road_2) else ""}'
-    msg = f'reference line does not connect for road {r2_name} and its {linkage_tag.name} road {r1_name}.'
+    msg = f"reference line does not connect for road {r2_name} and its {linkage_tag.name} road {r1_name}."
 
     # Cinstruct an issue
     issue_id = checker_data.result.register_issue(
@@ -114,4 +136,3 @@ def _raise_issue(checker_data, road_1: etree._Element, road_2: etree._Element, l
         column=0,
         description=msg,
     )
-        

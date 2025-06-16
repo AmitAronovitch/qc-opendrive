@@ -174,9 +174,9 @@ An example configuration file for using this Checker Bundle within the ASAM Qual
 
     <Param name="InputFile" value="test.xodr" />
 
-    <CheckerBundle application="xodrBundle">
-        <Param name="resultFile" value="xodr_bundle_report.xqar" />
-        <Checker checkerId="check_asam_xodr_xml_valid_xml_document" maxLevel="1" minLevel="3" />
+    <CheckerBundle application="xodrMEBundle">
+        <Param name="resultFile" value="xodr_me_bundle_report.xqar" />
+        <Checker checkerId="check_asam_xodr_xml_me_valid_xml_document" maxLevel="1" minLevel="3" />
         <Checker checkerId="check_asam_xodr_xml_root_tag_is_opendrive" maxLevel="1" minLevel="3" />
         <Checker checkerId="check_asam_xodr_xml_fileheader_is_present" maxLevel="1" minLevel="3" />
         <Checker checkerId="check_asam_xodr_xml_version_is_defined" maxLevel="1" minLevel="3" />
@@ -199,6 +199,11 @@ An example configuration file for using this Checker Bundle within the ASAM Qual
         <Checker checkerId="check_asam_xodr_road_geometry_parampoly3_normalized_range" maxLevel="1" minLevel="3" />
         <Checker checkerId="check_asam_xodr_performance_avoid_redundant_info" maxLevel="1" minLevel="3" />
         <Checker checkerId="check_asam_xodr_lane_smoothness_contact_point_no_horizontal_gaps" maxLevel="1" minLevel="3" />
+        <Checker checkerId="check_asam_xodr_road_geometry_connected_roads_connect_reference_lines" maxLevel="1" minLevel="3" />
+        <Checker checkerId="check_asam_xodr_junction_id_exists" maxLevel="1" minLevel="3" />
+        <Checker checkerId="check_asam_xodr_road_id_exists" maxLevel="1" minLevel="3" />
+        <Checker checkerId="check_asam_xodr_junction_incoming_roads_number" maxLevel="1" minLevel="3" />
+        <Checker checkerId="check_asam_xodr_lanes_connect_with_reversed_direction" maxLevel="1" minLevel="3" />
     </CheckerBundle>
 
     <ReportModule application="TextReport">

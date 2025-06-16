@@ -1766,12 +1766,18 @@ def get_s_offset_from_access(access: etree._ElementTree) -> Optional[float]:
 
 def point_to_array(point: models.Point2D | models.Point3D):
     # If the point has a 'z' attribute, it's 3D; otherwise, it's 2D.
-    return np.array([point.x, point.y, point.z]) if hasattr(point, 'z') else np.array([point.x, point.y])
-    
+    return (
+        np.array([point.x, point.y, point.z])
+        if hasattr(point, "z")
+        else np.array([point.x, point.y])
+    )
 
-def euclidean_distance(p1: models.Point2D | models.Point3D, p2: models.Point2D | models.Point3D) -> float:
+
+def euclidean_distance(
+    p1: models.Point2D | models.Point3D, p2: models.Point2D | models.Point3D
+) -> float:
     """
-    Calculate the Euclidean distance between two points. 
+    Calculate the Euclidean distance between two points.
     If one point is 2d and the other point is 3d then the 2d point is extended to 3d by adding z=zero.
 
     Args:
@@ -1792,6 +1798,6 @@ def euclidean_distance(p1: models.Point2D | models.Point3D, p2: models.Point2D |
             p1 = np.append(p1, 0)
         else:
             p2 = np.append(p2, 0)
-    
+
     # Calculate the Euclidean distance.
     return np.linalg.norm(p1 - p2)

@@ -145,15 +145,47 @@ def check_version(checker: types.ModuleType, checker_data: models.CheckerData) -
     return True
 
 
+def _get_bool_param(value: str | None) -> bool:
+    """
+    config params are defined as Union[int, float, str],
+    so we store bool as int, but we always get it as None or str on reading.
+    This converts the value back to bool (with default of False)
+    """
+    if value is None:
+        return False
+    return value.strip().lower() not in {"0", "false", "no"}
+
+
+def _get_ignore_preconditions(
+    checker: types.ModuleType, checker_data: models.CheckerData
+) -> bool:
+    """
+    get the ignorePreconditions parameter from global (bundle) config or from the specific checker
+    """
+    value = _get_bool_param(
+        checker_data.config.get_checker_bundle_param(
+            constants.BUNDLE_NAME, "ignorePreconditions"
+        )
+    )
+    value |= _get_bool_param(
+        checker_data.config.get_checker_param(
+            constants.BUNDLE_NAME, checker.CHECKER_ID, "ignorePreconditions"
+        )
+    )
+    return value
+
+
 def execute_checker(
     checker: types.ModuleType,
     checker_data: models.CheckerData,
     version_required: bool = True,
-    ignore_preconditions: bool = False
 ) -> None:
     # Ignore preconditions if requested
+    ignore_preconditions = _get_ignore_preconditions(checker, checker_data)
     if ignore_preconditions:
-        prev_preconditions = checker.CHECKER_PRECONDITIONS  # Store previous preconditions for later recovery
+        prev_preconditions = (
+            checker.CHECKER_PRECONDITIONS
+        )  # Store previous preconditions for later recovery
         checker.CHECKER_PRECONDITIONS = {}
 
     # Register checker
@@ -214,17 +246,19 @@ def execute_checker(
         checker.CHECKER_PRECONDITIONS = prev_preconditions
 
 
-def run_checks(config: Configuration, result: Result, ignore_preconditions: bool = False) -> None:
+def run_checks(
+    config: Configuration, result: Result, ignore_preconditions: bool = False
+) -> None:
     checker_data = models.CheckerData(
-        xml_file_path = config.get_config_param("InputFile"),
-        input_file_xml_root = None,
-        config = config,
-        result = result,
-        schema_version = None,
+        xml_file_path=config.get_config_param("InputFile"),
+        input_file_xml_root=None,
+        config=config,
+        result=result,
+        schema_version=None,
     )
 
     # 1. Run basic checks
-    execute_checker(basic.valid_xml_document, checker_data, version_required=False, ignore_preconditions=ignore_preconditions)
+    execute_checker(basic.valid_xml_document, checker_data, version_required=False)
 
     # Get xml root if the input file is a valid xml doc
     if result.all_checkers_completed_without_issue(
@@ -234,9 +268,9 @@ def run_checks(config: Configuration, result: Result, ignore_preconditions: bool
             checker_data.xml_file_path
         )
 
-    execute_checker(basic.root_tag_is_opendrive, checker_data, version_required=False, ignore_preconditions=ignore_preconditions)
-    execute_checker(basic.fileheader_is_present, checker_data, version_required=False, ignore_preconditions=ignore_preconditions)
-    execute_checker(basic.version_is_defined, checker_data, version_required=False, ignore_preconditions=ignore_preconditions)
+    execute_checker(basic.root_tag_is_opendrive, checker_data, version_required=False)
+    execute_checker(basic.fileheader_is_present, checker_data, version_required=False)
+    execute_checker(basic.version_is_defined, checker_data, version_required=False)
 
     # Get schema version if it exists
     if result.all_checkers_completed_without_issue(
@@ -252,47 +286,55 @@ def run_checks(config: Configuration, result: Result, ignore_preconditions: bool
         )
 
     # 2. Run schema check
-    # execute_checker(schema.valid_schema, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(schema.me_valid_schema, checker_data, ignore_preconditions=ignore_preconditions)
+    # execute_checker(schema.valid_schema, checker_data)
+    execute_checker(schema.me_valid_schema, checker_data)
 
     # 3. Run semantic checks
-    execute_checker(semantic.road_lane_level_true_one_side, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(semantic.road_lane_access_no_mix_of_deny_or_allow, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(semantic.road_lane_link_lanes_across_lane_sections, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(semantic.road_linkage_is_junction_needed, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(semantic.road_lane_link_zero_width_at_start, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(semantic.road_lane_link_zero_width_at_end, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(semantic.road_lane_link_new_lane_appear, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(semantic.junctions_connection_connect_road_no_incoming_road, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(semantic.junctions_connection_one_connection_element, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(semantic.junctions_connection_one_link_to_incoming, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(semantic.junctions_connection_start_along_linkage, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(semantic.junctions_connection_end_opposite_linkage, checker_data, ignore_preconditions=ignore_preconditions)
+    execute_checker(semantic.road_lane_level_true_one_side, checker_data)
+    execute_checker(semantic.road_lane_access_no_mix_of_deny_or_allow, checker_data)
+    execute_checker(semantic.road_lane_link_lanes_across_lane_sections, checker_data)
+    execute_checker(semantic.road_linkage_is_junction_needed, checker_data)
+    execute_checker(semantic.road_lane_link_zero_width_at_start, checker_data)
+    execute_checker(semantic.road_lane_link_zero_width_at_end, checker_data)
+    execute_checker(semantic.road_lane_link_new_lane_appear, checker_data)
+    execute_checker(
+        semantic.junctions_connection_connect_road_no_incoming_road, checker_data
+    )
+    execute_checker(semantic.junctions_connection_one_connection_element, checker_data)
+    execute_checker(semantic.junctions_connection_one_link_to_incoming, checker_data)
+    execute_checker(semantic.junctions_connection_start_along_linkage, checker_data)
+    execute_checker(semantic.junctions_connection_end_opposite_linkage, checker_data)
 
     # 4. Run geometry checks
-    execute_checker(geometry.road_geometry_parampoly3_length_match, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(geometry.road_lane_border_overlap_with_inner_lanes, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(geometry.road_geometry_parampoly3_arclength_range, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(geometry.road_geometry_parampoly3_normalized_range, checker_data, ignore_preconditions=ignore_preconditions)
+    execute_checker(geometry.road_geometry_parampoly3_length_match, checker_data)
+    execute_checker(geometry.road_lane_border_overlap_with_inner_lanes, checker_data)
+    execute_checker(geometry.road_geometry_parampoly3_arclength_range, checker_data)
+    execute_checker(geometry.road_geometry_parampoly3_normalized_range, checker_data)
 
     # 5. Run performance checks
-    execute_checker(performance.performance_avoid_redundant_info, checker_data, ignore_preconditions=ignore_preconditions)
+    execute_checker(performance.performance_avoid_redundant_info, checker_data)
 
     # 6. Run smoothness checks
-    execute_checker(smoothness.lane_smoothness_contact_point_no_horizontal_gaps, checker_data, ignore_preconditions=ignore_preconditions)
+    execute_checker(
+        smoothness.lane_smoothness_contact_point_no_horizontal_gaps, checker_data
+    )
 
     ################ ME TESTS ################
     # 7. Run ME geometry tests
-    execute_checker(geometry.connected_roads_connect_reference_lines, checker_data, ignore_preconditions=ignore_preconditions)
+    execute_checker(geometry.connected_roads_connect_reference_lines, checker_data)
 
     # 8. Run ME semantic tests
-    execute_checker(semantic.referenced_junction_id_exists, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(semantic.referenced_road_id_exists, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(semantic.junctions_incoming_roads_number, checker_data, ignore_preconditions=ignore_preconditions)
-    execute_checker(semantic.lanes_connect_with_reversed_direction, checker_data, ignore_preconditions=ignore_preconditions)
+    execute_checker(semantic.referenced_junction_id_exists, checker_data)
+    execute_checker(semantic.referenced_road_id_exists, checker_data)
+    execute_checker(semantic.junctions_incoming_roads_number, checker_data)
+    execute_checker(semantic.lanes_connect_with_reversed_direction, checker_data)
 
 
-def main(config_path: str = None, generate_markdown: bool = None, ignore_preconditions: bool = None) -> None:
+def main(
+    config_path: str = None,
+    generate_markdown: bool = None,
+    ignore_preconditions: bool = None,
+) -> None:
     if not config_path or generate_markdown is None or ignore_preconditions is None:
         args = args_entrypoint()
         config_path = config_path or args.config_path
@@ -303,6 +345,8 @@ def main(config_path: str = None, generate_markdown: bool = None, ignore_precond
 
     config = Configuration()
     config.load_from_file(xml_file_path=config_path)
+    if ignore_preconditions:
+        config.set_checker_bundle_param(constants.BUNDLE_NAME, "ignorePreconditions", 1)
 
     result = Result()
     result.register_checker_bundle(
@@ -313,7 +357,7 @@ def main(config_path: str = None, generate_markdown: bool = None, ignore_precond
     )
     result.set_result_version(version=constants.BUNDLE_VERSION)
 
-    run_checks(config, result, ignore_preconditions=ignore_preconditions)
+    run_checks(config, result)
 
     result.copy_param_from_config(config)
 
