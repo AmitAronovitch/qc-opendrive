@@ -1,8 +1,9 @@
 name: Tests
 on:
   push:
+  workflow_dispatch:
   pull_request:
-    branches: [ main ]
+    branches: [ main, me-main ]
 jobs:
   tests:
     runs-on: ${{ matrix.os }}
