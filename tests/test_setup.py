@@ -74,11 +74,11 @@ def check_skipped(
     assert len(issues) == 0
 
 
-def launch_main(monkeypatch):
+def launch_main(monkeypatch, args=["--generate_markdown"]):
     monkeypatch.setattr(
         sys,
         "argv",
-        ["main.py", "-c", CONFIG_FILE_PATH, "--generate_markdown"],
+        ["main.py", "-c", CONFIG_FILE_PATH] + args,
     )
     main.main()
 

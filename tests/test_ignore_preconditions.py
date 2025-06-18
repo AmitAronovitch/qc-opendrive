@@ -98,3 +98,21 @@ def test_bundle_ignore_precondition(monkeypatch) -> None:
     # report was not generated because of the failure, so cannot use normal cleanup
     assert not Path(REPORT_FILE_PATH).is_file()
     os.remove(CONFIG_FILE_PATH)
+
+
+def test_cli_ignore_precondition(monkeypatch) -> None:
+    target_file_path = TEST_DATA_PATH / "root_tag_is_opendrive/negative.xodr"
+    create_test_config(_fsp(target_file_path))
+
+    with pytest.raises(TypeError) as err_info:
+        launch_main(monkeypatch, ["--ignore_preconditions"])
+    _verify_failed_version_check(err_info)
+
+    result = _get_result_from_bundle_traceback(err_info.traceback)
+    assert (
+        result.get_checker_status(basic.version_is_defined.CHECKER_ID)
+        != StatusType.SKIPPED
+    )
+    # report was not generated because of the failure, so cannot use normal cleanup
+    assert not Path(REPORT_FILE_PATH).is_file()
+    os.remove(CONFIG_FILE_PATH)

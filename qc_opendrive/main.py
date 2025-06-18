@@ -145,7 +145,7 @@ def check_version(checker: types.ModuleType, checker_data: models.CheckerData) -
     return True
 
 
-def _get_bool_param(value: str | None) -> bool:
+def _get_bool_param(value: str | int | None) -> bool:
     """
     config params are defined as Union[int, float, str],
     so we store bool as int, but we always get it as None or str on reading.
@@ -153,7 +153,10 @@ def _get_bool_param(value: str | None) -> bool:
     """
     if value is None:
         return False
-    return value.strip().lower() not in {"0", "false", "no"}
+    elif hasattr(value, "strip"):  # str
+        return value.strip().lower() not in {"0", "false", "no"}
+    else:
+        return bool(value)
 
 
 def _get_ignore_preconditions(
