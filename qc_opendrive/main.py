@@ -323,8 +323,9 @@ def run_checks(
     )
 
     ################ ME TESTS ################
-    # 7. Run ME geometry tests
+    # 7. Run ME geometry & smoothness tests
     execute_checker(geometry.connected_roads_connect_reference_lines, checker_data)
+    execute_checker(smoothness.road_smoothness_road_vertical_variance, checker_data)
 
     # 8. Run ME semantic tests
     execute_checker(semantic.referenced_junction_id_exists, checker_data)
