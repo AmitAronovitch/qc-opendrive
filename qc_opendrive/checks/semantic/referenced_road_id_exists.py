@@ -155,7 +155,7 @@ def _raise_road_or_junction_issue(
     _raise_issue(
         checker_data,
         issue_element,
-        msg=f"Referenced {linkage_tag.name} {issue_element.get('elementType')} id does not exist.",
+        msg=f"Referenced {linkage_tag.value} {issue_element.get('elementType')} id does not exist.",
     )
 
 
@@ -192,23 +192,31 @@ def _check_referenced_road_id_in_road(
     if successor_id is not None:
         # Check if the successor road id exists
         if (successor_id[1] == "road") and (successor_id[0] not in declared_road_ids):
-            _raise_road_or_junction_issue(checker_data, successor, "successor")
+            _raise_road_or_junction_issue(
+                checker_data, successor, models.LinkageTag.SUCCESSOR
+            )
 
         # Check if the successor junction id exists
         if (successor_id[1] == "junction") and (
             successor_id[0] not in declared_junction_ids
         ):
-            _raise_road_or_junction_issue(checker_data, successor, "successor")
+            _raise_road_or_junction_issue(
+                checker_data, successor, models.LinkageTag.SUCCESSOR
+            )
 
     if predecessor_id is not None:
         # Check if the predecessor road id exists
         if (predecessor_id[1] == "road") and (
             predecessor_id[0] not in declared_road_ids
         ):
-            _raise_road_or_junction_issue(checker_data, predecessor, "predecessor")
+            _raise_road_or_junction_issue(
+                checker_data, predecessor, models.LinkageTag.PREDECESSOR
+            )
 
         # Check if the predecessor junction id exists
         if (predecessor_id[1] == "junction") and (
             predecessor_id[0] not in declared_junction_ids
         ):
-            _raise_road_or_junction_issue(checker_data, predecessor, "predecessor")
+            _raise_road_or_junction_issue(
+                checker_data, predecessor, models.LinkageTag.PREDECESSOR
+            )
