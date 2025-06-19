@@ -19,6 +19,14 @@ smaller than threshold.
 
 If one of the roads is a junction connecting road, then continuity is not checked.
 
+## Gaps in between elevation profiles of roads
+
+name: `road_smoothness_road_vertical_variance` (WARNING)
+
+High variance between elevation profiles of different roads may indicate problems in the map
+generation process, and can cause issues in automatic terrain generation software used for
+importing the map to a high resolution simulator.
+
 ## Junction References
 
 name: `referenced_junction_id_exists` (WARNING)
@@ -105,11 +113,15 @@ All checks in categories below this one have this (as well as 1-4) as preconditi
 
 **Geometry**:
 
-1. `connected_roads_connect_reference_lines`: Used as preconditin by [5.].
+1. `connected_roads_connect_reference_lines`: Used as preconditin by [6.].
+
+**Smoothness**:
+
+2. `road_smoothness_road_vertical_variance`
 
 **Semantic**:
 
-2. `referenced_junction_id_exists`
-3. `referenced_road_id_exists`
-4. `junctions_incoming_roads_number`
-5. `lanes_connect_with_reversed_direction`: This one has [1.] as precondition.
+3. `referenced_junction_id_exists`
+4. `referenced_road_id_exists`
+5. `junctions_incoming_roads_number`
+6. `lanes_connect_with_reversed_direction`: This one has [1.] as precondition.

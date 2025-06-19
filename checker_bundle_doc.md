@@ -152,28 +152,34 @@
 
 * Description: When roads connect as successors/predecessors their reference lines must connect as well.
 * Addressed rules:
-  * asam.net:xodr:1.4.0:road.geometry.referece_lines_connect_along_paired_roads
+  * mobileye.com:xodr:1.4.0:road.geometry.referece_lines_connect_along_paired_roads
+
+### check_asam_xodr_road_smoothness_vertical_variance
+
+* Description: The central elevations of the roads vary in a suspicious way
+* Addressed rules:
+  * mobileye.com:xodr:1.4.0:road_smoothness_vertical_variance
 
 ### check_asam_xodr_junction_id_exists
 
 * Description: Referenced junction id must exist.
 * Addressed rules:
-  * me.net:xodr:1.4.0:junctions.id.exists
+  * mobileye.com:xodr:1.4.0:junctions.id.exists
 
 ### check_asam_xodr_road_id_exists
 
 * Description: Referenced road id must exist.
 * Addressed rules:
-  * me.net:xodr:1.4.0:roads.id.exists
+  * mobileye.com:xodr:1.4.0:roads.id.exists
 
 ### check_asam_xodr_junction_incoming_roads_number
 
 * Description: Junctions must have at least 2 incoming road (recommended).
 * Addressed rules:
-  * me.net:xodr:1.4.0:junctions.incoming_roads_number
+  * mobileye.com:xodr:1.4.0:junctions.incoming_roads_number
 
 ### check_asam_xodr_lanes_connect_with_reversed_direction
 
 * Description: Lanes should connect with reversed direction. This is just a warning, not a spec violation
 * Addressed rules:
-  * me.net:xodr:1.4.0:connected_lanes.direction.reversed
+  * mobileye.com:xodr:1.4.0:connected_lanes.direction.reversed
