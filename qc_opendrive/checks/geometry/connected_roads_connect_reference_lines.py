@@ -10,7 +10,9 @@ from qc_opendrive import basic_preconditions
 CHECKER_ID = "check_asam_xodr_road_geometry_connected_roads_connect_reference_lines"
 CHECKER_DESCRIPTION = "When roads connect as successors/predecessors their reference lines must connect as well."
 CHECKER_PRECONDITIONS = basic_preconditions.CHECKER_PRECONDITIONS
-RULE_UID = "asam.net:xodr:1.4.0:road.geometry.referece_lines_connect_along_paired_roads"
+RULE_UID = (
+    "mobileye.com:xodr:1.4.0:road.geometry.referece_lines_connect_along_paired_roads"
+)
 TOLERANCE_THRESHOLD = 0.001
 
 
@@ -39,7 +41,9 @@ def check_rule(checker_data: models.CheckerData) -> None:
             road_successor = road_id_to_road.get(road_successor.id)
 
             # Check the connection only if the road is not a connecting road within a junction
-            if not utils.road_belongs_to_junction(road_successor):
+            if road_successor is not None and not utils.road_belongs_to_junction(
+                road_successor
+            ):
                 _check_road_connection(
                     checker_data, road_successor, road, models.LinkageTag.SUCCESSOR
                 )
@@ -51,9 +55,13 @@ def check_rule(checker_data: models.CheckerData) -> None:
             )
             if road_predecessor:
                 road_predecessor = road_id_to_road.get(road_predecessor.id)
-                _check_road_connection(
-                    checker_data, road_predecessor, road, models.LinkageTag.PREDECESSOR
-                )
+                if road_predecessor is not None:
+                    _check_road_connection(
+                        checker_data,
+                        road_predecessor,
+                        road,
+                        models.LinkageTag.PREDECESSOR,
+                    )
 
 
 def _check_road_connection(checker_data, road_1, road_2, linkage_tag) -> None:
