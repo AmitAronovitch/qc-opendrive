@@ -116,3 +116,45 @@ def test_road_lane_access_no_mix_of_deny_or_allow_examples(
         smoothness.lane_smoothness_contact_point_no_horizontal_gaps.CHECKER_ID,
     )
     cleanup_files()
+
+
+@pytest.mark.parametrize(
+    "target_file,issue_count,issue_xpath",
+    [
+        (
+            "simple_valid",
+            0,
+            [],
+        ),
+        (
+            "elevation_variance_invalid",
+            3,
+            [
+                "/OpenDRIVE/road[1]/elevationProfile",
+                "/OpenDRIVE/road[2]/elevationProfile",
+            ],
+        ),
+    ],
+)
+def test_road_smoothness_road_vertical_variance(
+    target_file: str,
+    issue_count: int,
+    issue_xpath: List[str],
+    monkeypatch,
+) -> None:
+    base_path = "tests/data/smoothness_example/"
+    target_file_name = f"{target_file}.xodr"
+    rule_uid = "mobileye.com:xodr:1.4.0:road_smoothness_vertical_variance"
+    issue_severity = IssueSeverity.WARNING
+
+    target_file_path = os.path.join(base_path, target_file_name)
+    create_test_config(target_file_path)
+    launch_main(monkeypatch)
+    check_issues(
+        rule_uid,
+        issue_count,
+        issue_xpath,
+        issue_severity,
+        smoothness.lane_smoothness_contact_point_no_horizontal_gaps.CHECKER_ID,
+    )
+    cleanup_files()

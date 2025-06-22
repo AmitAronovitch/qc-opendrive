@@ -200,6 +200,9 @@ An example configuration file for using this Checker Bundle within the ASAM Qual
         <Checker checkerId="check_asam_xodr_performance_avoid_redundant_info" maxLevel="1" minLevel="3" />
         <Checker checkerId="check_asam_xodr_lane_smoothness_contact_point_no_horizontal_gaps" maxLevel="1" minLevel="3" />
         <Checker checkerId="check_asam_xodr_road_geometry_connected_roads_connect_reference_lines" maxLevel="1" minLevel="3" />
+        <Checker checkerId="check_asam_xodr_road_smoothness_vertical_variance" maxLevel="1" minLevel="3">
+          <Param name="maxVerticalRoadGap" value="9999" /><!-- set large value to disable gap test (default=150) /-->
+        </Checker>
         <Checker checkerId="check_asam_xodr_junction_id_exists" maxLevel="1" minLevel="3" />
         <Checker checkerId="check_asam_xodr_road_id_exists" maxLevel="1" minLevel="3" />
         <Checker checkerId="check_asam_xodr_junction_incoming_roads_number" maxLevel="1" minLevel="3" />
