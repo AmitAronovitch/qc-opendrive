@@ -15,7 +15,7 @@ CHECKER_PRECONDITIONS = (
     set([connected_roads_connect_reference_lines.CHECKER_ID])
     | basic_preconditions.CHECKER_PRECONDITIONS
 )
-RULE_UID = "me.net:xodr:1.4.0:connected_lanes.direction.reversed"
+RULE_UID = "mobileye.com:xodr:1.4.0:connected_lanes.direction.reversed"
 
 
 def check_rule(checker_data: models.CheckerData) -> None:

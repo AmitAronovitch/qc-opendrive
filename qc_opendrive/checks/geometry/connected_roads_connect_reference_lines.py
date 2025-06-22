@@ -10,7 +10,9 @@ from qc_opendrive import basic_preconditions
 CHECKER_ID = "check_asam_xodr_road_geometry_connected_roads_connect_reference_lines"
 CHECKER_DESCRIPTION = "When roads connect as successors/predecessors their reference lines must connect as well."
 CHECKER_PRECONDITIONS = basic_preconditions.CHECKER_PRECONDITIONS
-RULE_UID = "asam.net:xodr:1.4.0:road.geometry.referece_lines_connect_along_paired_roads"
+RULE_UID = (
+    "mobileye.com:xodr:1.4.0:road.geometry.referece_lines_connect_along_paired_roads"
+)
 TOLERANCE_THRESHOLD = 0.001
 
 
