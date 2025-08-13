@@ -32,6 +32,9 @@ def check_rule(checker_data: models.CheckerData) -> None:
 
     # Iterate over all roads, testing successors and predecessors for reference-line connection
     for road in road_id_to_road.values():
+        # check connectivity only if the road is not a connecting road within a junction
+        if utils.road_belongs_to_junction(road):
+            continue
 
         # Check the roads reference-line connection with its successors
         road_successor = utils.get_road_linkage(
@@ -40,7 +43,7 @@ def check_rule(checker_data: models.CheckerData) -> None:
         if road_successor:
             road_successor = road_id_to_road.get(road_successor.id)
 
-            # Check the connection only if the road is not a connecting road within a junction
+            # Check the connection only if the successor is not a connecting road within a junction
             if road_successor is not None and not utils.road_belongs_to_junction(
                 road_successor
             ):
@@ -48,20 +51,22 @@ def check_rule(checker_data: models.CheckerData) -> None:
                     checker_data, road_successor, road, models.LinkageTag.SUCCESSOR
                 )
 
-        # Check the connection to the predecessor only if the road is not a connecting road within a junction
-        if not utils.road_belongs_to_junction(road):
-            road_predecessor = utils.get_road_linkage(
-                road=road, linkage_tag=models.LinkageTag.PREDECESSOR
-            )
-            if road_predecessor:
-                road_predecessor = road_id_to_road.get(road_predecessor.id)
-                if road_predecessor is not None:
-                    _check_road_connection(
-                        checker_data,
-                        road_predecessor,
-                        road,
-                        models.LinkageTag.PREDECESSOR,
-                    )
+        road_predecessor = utils.get_road_linkage(
+            road=road, linkage_tag=models.LinkageTag.PREDECESSOR
+        )
+        if road_predecessor:
+            road_predecessor = road_id_to_road.get(road_predecessor.id)
+
+            # Check the connection only if the predecessor is not a connecting road within a junction
+            if road_predecessor is not None and not utils.road_belongs_to_junction(
+                road_predecessor
+            ):
+                _check_road_connection(
+                    checker_data,
+                    road_predecessor,
+                    road,
+                    models.LinkageTag.PREDECESSOR,
+                )
 
 
 def _check_road_connection(checker_data, road_1, road_2, linkage_tag) -> None:
@@ -112,7 +117,7 @@ def _raise_issue(
         linkage_tag: The linkage tag that connects the two roads (2nd road to first, so a PREDECESSOR tag
             means that road_2 is the predecessor of road_1).
     """
-    # Construct the msg to report
+    # Construct the msg to report (note: neither r1 nor r2 should be "Connecting")
     r1_name = f'{road_1.get("id")}{" (Connecting)" if utils.road_belongs_to_junction(road_1) else ""}'
     r2_name = f'{road_2.get("id")}{" (Connecting)" if utils.road_belongs_to_junction(road_2) else ""}'
     msg = f"reference line does not connect for road {r2_name} and its {linkage_tag.name} road {r1_name}."
